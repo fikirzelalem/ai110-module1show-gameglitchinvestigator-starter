@@ -47,4 +47,10 @@ This is a number guessing game built with Streamlit. The player picks a difficul
 
 ## 🚀 Stretch Features
 
-- [ ] [If you choose to complete Challenge 4, insert a screenshot of your Enhanced Game UI here]
+**Challenge 4 — Enhanced Game UI:** I added color coded hint messages (red for Too High, blue for Too Low) and a session summary table that appears at the end of the game showing every guess, its direction, and its distance from the secret number.
+
+## 📸 Demo for Stretch Feature
+
+![Demo screenshot](demo2.png)
+![Demo screenshot](demo3.png)
+

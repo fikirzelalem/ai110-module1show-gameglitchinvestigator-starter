@@ -127,8 +127,13 @@ if submit:
         # on even attempts. Now always passes the integer secret directly.
         outcome, message = check_guess(guess_int, st.session_state.secret)
 
+        # Challenge 4: Color-coded hints — red for Too High, blue for Too Low.
+        # Implemented with Copilot. Does not change game logic, only display.
         if show_hint:
-            st.warning(message)
+            if outcome == "Too High":
+                st.error(message)
+            else:
+                st.info(message)
 
         st.session_state.score = update_score(
             current_score=st.session_state.score,
@@ -143,6 +148,15 @@ if submit:
                 f"You won! The secret was {st.session_state.secret}. "
                 f"Final score: {st.session_state.score}"
             )
+            # Challenge 4: Session summary table on win.
+            valid = [g for g in st.session_state.history if isinstance(g, int)]
+            rows = []
+            for i, g in enumerate(valid, start=1):
+                dist = abs(g - st.session_state.secret)
+                direction = "✅ Correct" if g == st.session_state.secret else ("⬆️ Too High" if g > st.session_state.secret else "⬇️ Too Low")
+                rows.append({"#": i, "Your Guess": g, "Direction": direction, "Distance": dist})
+            st.subheader("📊 Game Summary")
+            st.table(rows)
         else:
             if st.session_state.attempts >= attempt_limit:
                 st.session_state.status = "lost"
@@ -151,6 +165,15 @@ if submit:
                     f"The secret was {st.session_state.secret}. "
                     f"Score: {st.session_state.score}"
                 )
+                # Challenge 4: Session summary table on loss.
+                valid = [g for g in st.session_state.history if isinstance(g, int)]
+                rows = []
+                for i, g in enumerate(valid, start=1):
+                    dist = abs(g - st.session_state.secret)
+                    direction = "⬆️ Too High" if g > st.session_state.secret else "⬇️ Too Low"
+                    rows.append({"#": i, "Your Guess": g, "Direction": direction, "Distance": dist})
+                st.subheader("📊 Game Summary")
+                st.table(rows)
 
 st.divider()
 st.caption("Built by an AI that claims this code is production-ready.")
