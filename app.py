@@ -27,6 +27,31 @@ low, high = get_range_for_difficulty(difficulty)
 st.sidebar.caption(f"Range: {low} to {high}")
 st.sidebar.caption(f"Attempts allowed: {attempt_limit}")
 
+# Challenge 2: Guess History sidebar — implemented with Copilot Agent mode.
+# Reads from st.session_state.history (already tracked) and displays each
+# valid guess with its distance from the secret and a hot/cold indicator.
+st.sidebar.divider()
+st.sidebar.subheader("📋 Guess History")
+valid_guesses = [g for g in st.session_state.get("history", []) if isinstance(g, int)]
+if not valid_guesses:
+    st.sidebar.caption("No guesses yet.")
+else:
+    secret = st.session_state.get("secret")
+    for i, g in enumerate(valid_guesses, start=1):
+        distance = abs(g - secret)
+        if distance == 0:
+            indicator = "🎉 Exact!"
+        elif distance <= 5:
+            indicator = "🔥 Very hot"
+        elif distance <= 15:
+            indicator = "♨️ Warm"
+        elif distance <= 30:
+            indicator = "❄️ Cold"
+        else:
+            indicator = "🧊 Very cold"
+        direction = "↑ Too High" if g > secret else "↓ Too Low"
+        st.sidebar.write(f"**#{i}** — {g} | {direction} | {indicator}")
+
 if "secret" not in st.session_state:
     st.session_state.secret = random.randint(low, high)
 
