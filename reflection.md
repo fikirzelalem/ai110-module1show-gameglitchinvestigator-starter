@@ -61,3 +61,27 @@ One developer habit I want to carry forward is writing a test before or immediat
 Next time I work with AI on a coding task, I would ask it to explain the bug before proposing a fix. In this project, I sometimes accepted a fix without fully understanding why the original code was wrong. Going forward, I'll treat AI suggestions as a starting point to reason through and not a final answer to paste in.
 
 This project changed the way I think about AI-generated code because it showed me that code can look completely correct at a glance, with proper syntax, reasonable variable names, familiar patterns and still contain logic that quietly breaks the product in ways that only show up during real use. AI writes convincing code but not necessarily a correct code and that distinction is now something I'll keep in mind.
+
+---
+
+## Challenge 5: AI Model Comparison
+
+**The bug I tested with:** The inverted hints bug, `check_guess` returned `"Go HIGHER!"` when the guess was too high and `"Go LOWER!"` when it was too low.
+
+**Prompt I used:** *"I have a Python function called `check_guess(guess, secret)`. When the guess is higher than the secret it returns 'Go HIGHER!' and when it's lower it returns 'Go LOWER!'. The hints are backwards and the player can never win by following them. How do I fix this issue?"*
+
+---
+
+**GitHub Copilot (VS Code inline):**
+Copilot responded directly in the editor with an inline suggestion that swapped the two return strings. It changed `"Go HIGHER!"` to `"Go LOWER!"` and vice versa without any extra explanation. The suggestion appeared as a ghost text diff and I could accept it with Tab in one keystroke. It was fast and the fix was technically correct, but Copilot did not explain why the original code was wrong, it just handed me the corrected version. If I had not already understood the bug, I would have accepted the fix without really learning anything about it.
+
+**ChatGPT (GPT-4o, chat interface):**
+ChatGPT gave a longer response. It started by restating the problem in plain English, *"when `guess > secret` the player needs to go lower, not higher, so the condition and its message are swapped"*, before showing the corrected code. It also suggested adding a comment to the function to make the logic self-documenting. The explanation made it easier to understand the root cause and not just copy the fix. The trade off is that the response took longer to read and required me to copy code manually from the chat window into my editor.
+
+---
+
+**Which gave a more readable fix?**
+Copilot's fix was way more readable than ChatGPT in the sense that it appeared right inside my file with no extra steps. I could see exactly what changed. ChatGPT's fix was embedded inside a block of explanation text which made it slightly harder to extract but the surrounding explanation added context that Copilot skipped.
+
+**Which explained the "why" more clearly?**
+ChatGPT explained the "why" more clearly than copilot did. It named the condition and the message pointed in opposite directions before showing the corrected code. Copilot gave me the right answer but treated the fix like autocomplete. For this bug, understanding *why* it was wrong matters more than getting it fixed fast, so ChatGPT was more useful for actually learning from the mistake.
