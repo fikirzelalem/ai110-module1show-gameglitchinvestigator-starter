@@ -22,42 +22,42 @@ When I ran the game it launched and appeared functional at first glance. There w
 
 ## 2. How did you use AI as a teammate?
 
-I used GitHub Copilot (via VS Code) throughout Phase 2 to help identify root causes, plan the refactor, and generate tests.
+I used GitHub Copilot (via VS Code) throughout Phase 2 to help identify the root causes of the bug, to plan the refactor, and generate the tests.
 
 **Correct AI suggestion — fixing the inverted hints:**
-Copilot identified that `check_guess` in `app.py` had the hint messages swapped: when `guess > secret` (too high), it returned `"📈 Go HIGHER!"` instead of `"📉 Go LOWER!"`. Copilot suggested swapping the emoji and direction text so `"Too High"` maps to `"Go LOWER!"` and `"Too Low"` maps to `"Go HIGHER!"`. I verified this by running the two new pytest cases `test_too_high_hint_says_go_lower` and `test_too_low_hint_says_go_higher` — both passed — and then confirmed in the live Streamlit game that guessing too high now correctly told me to go lower.
+Copilot identified that `check_guess` in `app.py` had the hint messages swapped: when `guess > secret` (too high) it returned `"📈 Go HIGHER!"` instead of `"📉 Go LOWER!"`. Copilot suggested swapping the emoji and direction text so `"Too High"` maps to `"Go LOWER!"` and `"Too Low"` maps to `"Go HIGHER!"`. I verified this by running the two new pytest cases `test_too_high_hint_says_go_lower` and `test_too_low_hint_says_go_higher`, in which both passed and then confirmed in the live Streamlit game that guessing too high now correctly told me to go lower.
 
-**Incorrect/misleading AI suggestion — the score on "Too High":**
-At one point Copilot suggested that rewarding +5 points for a "Too High" guess on even attempts inside `update_score` was intentional game design rather than a bug. I accepted this explanation at first, but after playing the game I realized it felt unfair and random — getting rewarded for a wrong guess makes no sense to a player. I rejected that explanation and left the scoring logic unchanged for now, noting it as a future fix since it wasn't one of my two targeted bugs for this phase.
+**Incorrect/misleading AI suggestion — the score on "Too High!":**
+At one point Copilot suggested that rewarding +5 points for a "Too High" guess on even attempts inside `update_score` was intentional game design rather than a bug. I accepted this explanation at first but after playing the game I realized it felt unfair and random and getting rewarded for a wrong guess makes no sense to a player. I rejected that explanation and left the scoring logic unchanged for now, noting it as a future fix since it wasn't one of my two targeted bugs for this phase.
 
 ---
 
 ## 3. Debugging and testing your fixes
 
-I decided a bug was fixed only when two things were both true: the pytest test for that specific bug passed, and I could confirm the correct behavior by playing the live game in my browser.
+I decided a bug was fixed only when two things were both true; the pytest test for that specific bug passed, and I could confirm the correct behavior by playing the game in my browser.
 
 **Test 1 — Inverted hints (pytest):** I added `test_too_high_hint_says_go_lower`, which calls `check_guess(80, 50)` and asserts the returned message contains `"LOWER"`. Before the fix this would have failed because the old code returned `"Go HIGHER!"`. After moving the corrected `check_guess` into `logic_utils.py`, all 5 tests passed with `pytest tests/ -v`.
 
-**Test 2 — New Game button (manual):** I ran the game with `python -m streamlit run app.py`, won a round, then clicked "New Game." Before the fix the page looped back to "You already won." After adding `st.session_state.status = "playing"` to the new_game handler, the button correctly reset the game and let me play a fresh round.
+**Test 2 — New Game button (manual):** I ran the game with `python -m streamlit run app.py`, won a round, and then clicked "New Game." Before the fix the page looped back to "You already won." After adding `st.session_state.status = "playing"` to the new_game handler, the button correctly reset the game and let me play a fresh round.
 
-Copilot also helped me catch that the original tests were checking `result == "Win"` but `check_guess` returns a tuple, meaning the tests would have always failed even on correct logic. Copilot suggested unpacking the tuple in each test using `outcome, message = check_guess(...)`, which was the right approach.
+Copilot also helped me catch that the original tests were checking `result == "Win"` but `check_guess` returns a tuple, whichh means the tests would have always failed even on the correct logic. Copilot suggested unpacking the tuple in each test using `outcome, message = check_guess(...)`, which was the right approach.
 
 ---
 
 ## 4. What did you learn about Streamlit and state?
 
-In the original app, the secret number appeared to behave differently depending on which attempt you were on — not because the stored number changed, but because on every even-numbered attempt the code silently converted it to a string with `secret = str(st.session_state.secret)`. This meant the comparison in `check_guess` flipped between numeric and string logic every other guess, making the hints feel random and the target feel like it was moving.
+In the original app, the secret number appeared to behave differently depending on which attempt you were on, not because the stored number changed, but because on every even numbered attempt the code silently converted it to a string with `secret = str(st.session_state.secret)`. This meant the comparison in `check_guess` flipped between numeric and string logic every other guess, which was making the hints feel random and the target feel like it was moving.
 
-Streamlit works differently from a normal Python script. Every time you click a button or type something, Streamlit reruns the entire script from top to bottom. Normally this would reset all your variables to their starting values. Session state is Streamlit's solution — it's like a persistent notepad that survives across reruns. Any value stored in `st.session_state` stays put between interactions, so you can track things like the secret number, attempt count, and score without them being wiped on every click.
+Streamlit works differently from a normal Python script. Every time you click a button or type something Streamlit reruns the entire script from top to bottom. Normally this would reset all your variables to their starting values. Session state is Streamlit's solution. Any value stored in `st.session_state` stays put between interactions so you can track things like the secret number, attempt count, and score without them being wiped on every click.
 
-The fix that gave the game a stable secret was already partly in place — the `if "secret" not in st.session_state:` guard meant the secret was only generated once. The real fix was removing the string conversion entirely and always passing `st.session_state.secret` (the integer) directly to `check_guess`. After that, every guess compared apples to apples, and the hints became consistent and trustworthy.
+The fix that gave the game a stable secret was already partly in place. The `if "secret" not in st.session_state:` guard meant the secret was only generated once. The real fix was removing the string conversion entirely and always passing `st.session_state.secret` (the integer) directly to `check_guess`. After that the hints became consistent and trustworthy.
 
 ---
 
 ## 5. Looking ahead: your developer habits
 
-One habit I want to carry forward is writing a test before or immediately after a fix — not after the whole project is done. When I added `test_too_high_hint_says_go_lower` right after fixing `check_guess`, I could instantly confirm the fix was correct. That feedback loop was much tighter than just running the app and guessing, and it gave me confidence the fix was real and not just coincidentally working.
+One developer habit I want to carry forward is writing a test before or immediately after a fix, not after the whole project is done. When I added `test_too_high_hint_says_go_lower` right after fixing `check_guess`, I could instantly confirm the fix was correct. That feedback loop was much tighter than just running the app and guessing and it gave me confidence the fix was real and not just coincidentally working.
 
-Next time I work with AI on a coding task, I would ask it to explain the bug before proposing a fix. In this project, I sometimes accepted a fix without fully understanding why the original code was wrong. Going forward, I'll treat AI suggestions as a starting point to reason through, not a final answer to paste in.
+Next time I work with AI on a coding task, I would ask it to explain the bug before proposing a fix. In this project, I sometimes accepted a fix without fully understanding why the original code was wrong. Going forward, I'll treat AI suggestions as a starting point to reason through and not a final answer to paste in.
 
-This project changed the way I think about AI-generated code because it showed me that code can look completely correct at a glance — proper syntax, reasonable variable names, familiar patterns — and still contain logic that quietly breaks the product in ways that only show up during real use. AI writes convincing code, not necessarily correct code, and that distinction is now something I'll always keep in mind.
+This project changed the way I think about AI-generated code because it showed me that code can look completely correct at a glance, with proper syntax, reasonable variable names, familiar patterns and still contain logic that quietly breaks the product in ways that only show up during real use. AI writes convincing code but not necessarily a correct code and that distinction is now something I'll keep in mind.
