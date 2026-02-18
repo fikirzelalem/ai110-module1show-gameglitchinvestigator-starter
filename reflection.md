@@ -46,15 +46,18 @@ Copilot also helped me catch that the original tests were checking `result == "W
 
 ## 4. What did you learn about Streamlit and state?
 
-- In your own words, explain why the secret number kept changing in the original app.
-- How would you explain Streamlit "reruns" and session state to a friend who has never used Streamlit?
-- What change did you make that finally gave the game a stable secret number?
+In the original app, the secret number appeared to behave differently depending on which attempt you were on — not because the stored number changed, but because on every even-numbered attempt the code silently converted it to a string with `secret = str(st.session_state.secret)`. This meant the comparison in `check_guess` flipped between numeric and string logic every other guess, making the hints feel random and the target feel like it was moving.
+
+Streamlit works differently from a normal Python script. Every time you click a button or type something, Streamlit reruns the entire script from top to bottom. Normally this would reset all your variables to their starting values. Session state is Streamlit's solution — it's like a persistent notepad that survives across reruns. Any value stored in `st.session_state` stays put between interactions, so you can track things like the secret number, attempt count, and score without them being wiped on every click.
+
+The fix that gave the game a stable secret was already partly in place — the `if "secret" not in st.session_state:` guard meant the secret was only generated once. The real fix was removing the string conversion entirely and always passing `st.session_state.secret` (the integer) directly to `check_guess`. After that, every guess compared apples to apples, and the hints became consistent and trustworthy.
 
 ---
 
 ## 5. Looking ahead: your developer habits
 
-- What is one habit or strategy from this project that you want to reuse in future labs or projects?
-  - This could be a testing habit, a prompting strategy, or a way you used Git.
-- What is one thing you would do differently next time you work with AI on a coding task?
-- In one or two sentences, describe how this project changed the way you think about AI generated code.
+One habit I want to carry forward is writing a test before or immediately after a fix — not after the whole project is done. When I added `test_too_high_hint_says_go_lower` right after fixing `check_guess`, I could instantly confirm the fix was correct. That feedback loop was much tighter than just running the app and guessing, and it gave me confidence the fix was real and not just coincidentally working.
+
+Next time I work with AI on a coding task, I would ask it to explain the bug before proposing a fix. In this project, I sometimes accepted a fix without fully understanding why the original code was wrong. Going forward, I'll treat AI suggestions as a starting point to reason through, not a final answer to paste in.
+
+This project changed the way I think about AI-generated code because it showed me that code can look completely correct at a glance — proper syntax, reasonable variable names, familiar patterns — and still contain logic that quietly breaks the product in ways that only show up during real use. AI writes convincing code, not necessarily correct code, and that distinction is now something I'll always keep in mind.
